@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SiKarya Admin — Panel Owner</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1D9E75;--green-light:#E1F5EE;--green-mid:#5DCAA5;--green-dark:#0F6E56;
+  --amber:#BA7517;--amber-light:#FAEEDA;--amber-mid:#FAC775;
+  --red:#A32D2D;--red-light:#FCEBEB;
+  --blue:#185FA5;--blue-light:#E6F1FB;
+  --purple:#534AB7;--purple-light:#EEEDFE;
+  --gray:#5F5E5A;--gray-light:#F1EFE8;
+  --bg:#F7F7F5;--bg2:#FFFFFF;--border:#E0DED6;
+  --text:#1A1A18;--text2:#5F5E5A;--text3:#8C8B84;
+  --radius:8px;--radius-lg:12px;--shadow:0 1px 3px rgba(0,0,0,.08);
+}
+body{font-family:'Segoe UI',Arial,sans-serif;font-size:14px;color:var(--text);background:var(--bg);min-height:100vh}
+.app-wrapper{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100;overflow-y:auto}
+.main-content{margin-left:220px;flex:1;display:flex;flex-direction:column}
+.logo{padding:20px 16px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.logo-title{font-size:16px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px}
+.logo-badge{background:var(--purple-light);color:var(--purple);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.04em}
+.logo-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.nav-section{padding:6px 0}
+.nav-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:8px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;font-size:13px;color:var(--text2);border-left:3px solid transparent;transition:.15s;user-select:none}
+.nav-item svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2}
+.nav-item:hover{background:var(--bg);color:var(--text)}
+.nav-item.active{background:var(--green-light);color:var(--green-dark);border-left-color:var(--green);font-weight:700}
+.sidebar-footer{margin-top:auto;padding:14px 16px;border-top:1px solid var(--border);flex-shrink:0}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.page-title{font-size:16px;font-weight:700}
+.page-date{font-size:12px;color:var(--text3);margin-top:1px}
+.topbar-right{display:flex;gap:8px;align-items:center}
+.btn{padding:8px 16px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg2);cursor:pointer;font-size:13px;color:var(--text);display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-weight:500;transition:.15s;white-space:nowrap}
+.btn:hover{background:var(--bg)}
+.btn:active{transform:scale(.98)}
+.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+.btn-primary{background:var(--green);border-color:var(--green);color:#fff}
+.btn-primary:hover{background:var(--green-dark);border-color:var(--green-dark)}
+.btn-sm{padding:5px 11px;font-size:12px;border-radius:6px}
+.btn-danger{background:var(--red-light);border-color:#F09595;color:var(--red)}
+.btn-approve{background:var(--green-light);border-color:var(--green-mid);color:var(--green-dark)}
+.btn-purple{background:var(--purple-light);border-color:#AFA9EC;color:var(--purple)}
+.content-area{padding:20px 24px;flex:1}
+.page{display:none}.page.active{display:block}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow)}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
+.stat-label{font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.stat-val{font-size:24px;font-weight:700;line-height:1}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.table-wrap{overflow-x:auto;border-radius:var(--radius-lg);border:1px solid var(--border)}
+.table{width:100%;border-collapse:collapse;font-size:13px;background:var(--bg2)}
+.table th{text-align:left;padding:10px 14px;font-weight:700;font-size:11px;color:var(--text3);background:var(--bg);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+.table tbody tr:last-child td{border-bottom:none}
+.table tbody tr:hover{background:#FAFAF8}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge-green{background:var(--green-light);color:var(--green-dark)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.badge-red{background:var(--red-light);color:var(--red)}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-purple{background:var(--purple-light);color:var(--purple)}
+.badge-gray{background:var(--gray-light);color:var(--gray)}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.form-group label{font-size:12px;font-weight:700;color:var(--text2)}
+.form-group input,.form-group select,.form-group textarea{padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg2);font-size:13px;color:var(--text);font-family:inherit;transition:.15s;width:100%}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.12)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-actions{display:flex;gap:8px;margin-top:4px}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--green-light);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--green-dark);margin-right:8px;flex-shrink:0;vertical-align:middle}
+.progress{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:3px;transition:.4s}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border-radius:var(--radius-lg);padding:24px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.modal-title{font-size:16px;font-weight:700}
+.modal-close{background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;color:var(--text3);font-size:22px;line-height:1}
+.notif-container{position:fixed;top:16px;right:16px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.notif{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 16px;min-width:280px;box-shadow:0 4px 16px rgba(0,0,0,.12);display:flex;align-items:center;gap:10px;animation:slideIn .25s ease;font-size:13px}
+.notif-success{border-left:3px solid var(--green)}
+.notif-warning{border-left:3px solid var(--amber)}
+.notif-icon{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--green-light);color:var(--green-dark)}
+.notif-warning .notif-icon{background:var(--amber-light);color:var(--amber)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:none;opacity:1}}
+.code-box{background:var(--bg);border:1.5px dashed var(--green-mid);border-radius:var(--radius-lg);padding:16px;text-align:center;margin:10px 0}
+.code-display{font-size:32px;font-weight:900;letter-spacing:8px;color:var(--green-dark);font-family:monospace}
+.code-sub{font-size:12px;color:var(--text3);margin-top:6px}
+.kode-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.kode-nama{font-size:13px;font-weight:700}
+.kode-divisi{font-size:12px;color:var(--text3)}
+.kode-val{font-family:monospace;font-size:18px;font-weight:900;letter-spacing:4px;color:var(--green-dark)}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.summary-row:last-child{border-bottom:none}
+.chip{display:inline-block;padding:2px 8px;background:var(--bg);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text2)}
+.sync-banner{background:linear-gradient(135deg,var(--purple-light),var(--green-light));border:1px solid #AFA9EC;border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sync-text{font-size:13px;font-weight:600;color:var(--purple)}
+.sync-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.fw-bold{font-weight:700}
+.text-green{color:var(--green-dark)}.text-amber{color:var(--amber)}.text-red{color:var(--red)}.text-blue{color:var(--blue)}.text-purple{color:var(--purple)}
+</style>
+</head>
+<body>
+
+<div class="notif-container" id="notifContainer"></div>
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalBox">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle"></div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div class="app-wrapper">
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-title">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--green);fill:none;stroke-width:2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        SiKarya <span class="logo-badge">ADMIN</span>
+      </div>
+      <div class="logo-sub">Panel Owner / Manajer</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Utama</div>
+      <div class="nav-item active" onclick="showPage('dashboard',this)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('karyawan',this)">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Data Karyawan
+      </div>
+      <div class="nav-item" onclick="showPage('akses',this)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Kode Akses Karyawan
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Laporan Masuk</div>
+      <div class="nav-item" onclick="showPage('absensi',this)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>Absensi
+      </div>
+      <div class="nav-item" onclick="showPage('produksi',this)">
+        <svg viewBox="0 0 24 24"><path d="M2 20h20"/><path d="M5 20V8l7-5 7 5v12"/><path d="M9 20v-6h6v6"/></svg>Produksi
+      </div>
+      <div class="nav-item" onclick="showPage('gudang',this)">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Penggudangan
+      </div>
+      <div class="nav-item" onclick="showPage('cashbon',this)">
+        <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Cashbon
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Export</div>
+      <div class="nav-item" onclick="showPage('laporan',this)">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Laporan & Export
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:34px;height:34px;border-radius:50%;background:var(--purple-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--purple)">OW</div>
+        <div>
+          <div style="font-size:13px;font-weight:700">Owner</div>
+          <div style="font-size:11px;color:var(--text3)">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="pageTitle">Dashboard</div>
+        <div class="page-date" id="pageDate"></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-sm btn-purple" onclick="showPage('akses',document.querySelector(\'[onclick*=akses]\'))">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Kelola Kode Akses
+        </button>
+        <button class="btn btn-sm" onclick="importData()">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Import Data
+        </button>
+        <button class="btn btn-sm btn-primary" onclick="exportData()">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Backup Data
+        </button>
+      </div>
+    </div>
+
+    <div class="content-area">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="sync-banner">
+          <div>
+            <div class="sync-text">💡 Cara Kerja Sistem Kode Akses</div>
+            <div class="sync-sub">Admin buat kode → bagikan ke karyawan → karyawan isi data di SiKarya_Karyawan.html → export JSON → admin import di sini</div>
+          </div>
+          <button class="btn btn-sm btn-purple" onclick="showPage('akses',document.querySelector(\'[onclick*=akses]\'))">Buat Kode Akses →</button>
+        </div>
+        <div class="stats-grid" id="dashStats"></div>
+        <div class="two-col">
+          <div>
+            <div class="section-header"><div class="section-title">Absensi Hari Ini</div></div>
+            <div class="table-wrap"><table class="table" id="dashAbsenTbl"><thead><tr><th>Nama</th><th>Jam</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+          </div>
+          <div>
+            <div class="section-header"><div class="section-title">Cashbon Menunggu Persetujuan</div></div>
+            <div class="table-wrap"><table class="table" id="dashCashTbl"><thead><tr><th>Nama</th><th>Jumlah</th><th>Aksi</th></tr></thead><tbody></tbody></table></div>
+          </div>
+        </div>
+        <div style="margin-top:16px">
+          <div class="section-header"><div class="section-title">Progress Target Produksi Hari Ini</div></div>
+          <div class="card" id="dashProdCard"></div>
+        </div>
+        <div style="margin-top:16px">
+          <div class="section-header"><div class="section-title">Alert Stok</div></div>
+          <div id="dashStokAlert"></div>
+        </div>
+      </div>
+
+      <!-- KARYAWAN -->
+      <div class="page" id="page-karyawan">
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+          <input type="text" id="searchKar" placeholder="Cari nama..." style="max-width:220px;padding:7px 12px;border-radius:var(--radius);border:1px solid var(--border);font-size:13px" oninput="renderKaryawan()">
+          <select id="filterDivKar" style="padding:7px 12px;border-radius:var(--radius);border:1px solid var(--border);font-size:13px" onchange="renderKaryawan()">
+            <option value="">Semua Divisi</option><option>Produksi</option><option>Gudang</option><option>Admin</option><option>Kasir</option><option>QC</option>
+          </select>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-sm btn-primary" onclick="openFormKaryawan()">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Tambah Karyawan
+            </button>
+            <button class="btn btn-sm" onclick="exportCSV('karyawan')">Export CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="table" id="tblKaryawan">
+            <thead><tr><th>No</th><th>Nama</th><th>Divisi</th><th>Jabatan</th><th>No HP</th><th>Kode Akses</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- KODE AKSES -->
+      <div class="page" id="page-akses">
+
+        <!-- URL CONFIG -->
+        <div class="card" style="margin-bottom:14px;border:1.5px solid #AFA9EC;background:var(--purple-light)">
+          <div style="font-size:14px;font-weight:700;color:var(--purple);margin-bottom:8px">🌐 Link Aplikasi Karyawan</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Setelah deploy ke Netlify, masukkan link di sini. Link ini otomatis disertakan saat kirim kode via WhatsApp & Gmail.</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input id="appUrlInput" type="text" placeholder="https://sikarya-karyawan.netlify.app" style="flex:1;min-width:200px;padding:8px 12px;border-radius:var(--radius);border:1px solid #AFA9EC;background:var(--bg2);font-size:13px;color:var(--text)">
+            <button class="btn btn-sm btn-purple" onclick="simpanAppUrl()">Simpan URL</button>
+          </div>
+          <div id="appUrlStatus" style="font-size:12px;margin-top:8px;color:var(--text3)">💡 Belum ada URL. Deploy dulu ke Netlify lalu isi link di atas.</div>
+        </div>
+
+        <!-- INFO -->
+        <div class="card" style="margin-bottom:14px;background:var(--green-light);border-color:var(--green-mid)">
+          <div style="font-size:13px;font-weight:700;color:var(--green-dark);margin-bottom:6px">🔐 Cara Kerja Sistem</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.8">
+            1. Generate kode unik per karyawan → klik <strong>WA</strong> atau <strong>Email</strong> untuk kirim kode + link<br>
+            2. Karyawan buka link → masukkan kode → isi absensi, produksi, cashbon<br>
+            3. Karyawan klik <em>Kirim Data</em> → file JSON terdownload → kirim ke admin<br>
+            4. Admin klik <strong>Import Data</strong> di topbar → laporan masuk otomatis
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="btn btn-sm btn-primary" onclick="openFormKaryawan()">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Tambah Karyawan
+          </button>
+          <button class="btn btn-sm btn-purple" onclick="generateSemuaKode()">
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Generate Semua Kode
+          </button>
+          <button class="btn btn-sm" onclick="cetakSemuaKode()">🖨️ Cetak Semua</button>
+          <button class="btn btn-sm" style="background:#E7F7E4;border-color:#5DCAA5;color:#0F6E56" onclick="shareSemuaWA()">💬 Blast WA Semua</button>
+        </div>
+        <div id="daftarKodeAkses"></div>
+      </div>
+
+      <!-- ABSENSI -->
+      <div class="page" id="page-absensi">
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+          <input type="date" id="filterTglAbsen" style="padding:7px 12px;border-radius:var(--radius);border:1px solid var(--border);font-size:13px" onchange="renderAbsensi()">
+          <select id="filterDivAbsen" style="padding:7px 12px;border-radius:var(--radius);border:1px solid var(--border);font-size:13px" onchange="renderAbsensi()">
+            <option value="">Semua Divisi</option><option>Produksi</option><option>Gudang</option><option>Admin</option><option>Kasir</option><option>QC</option>
+          </select>
+          <div style="margin-left:auto"><button class="btn btn-sm" onclick="exportCSV('absensi')">Export CSV</button></div>
+        </div>
+        <div class="stats-grid" id="absenStats"></div>
+        <div class="table-wrap">
+          <table class="table" id="tblAbsensi">
+            <thead><tr><th>Nama</th><th>Divisi</th><th>Tanggal</th><th>Jam Masuk</th><th>Jam Keluar</th><th>Ket</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PRODUKSI -->
+      <div class="page" id="page-produksi">
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+          <input type="date" id="filterTglProd" style="padding:7px 12px;border-radius:var(--radius);border:1px solid var(--border);font-size:13px" onchange="renderProduksi()">
+          <select id="filterProd" style="padding:7px 12px;border-radius:var(--radius);border:1px solid var(--border);font-size:13px" onchange="renderProduksi()">
+            <option value="">Semua Produk</option><option>Sirup Pericarp Pala</option><option>Produk B</option><option>Produk C</option>
+          </select>
+          <div style="margin-left:auto"><button class="btn btn-sm" onclick="exportCSV('produksi')">Export CSV</button></div>
+        </div>
+        <div class="stats-grid" id="prodStats"></div>
+        <div class="table-wrap">
+          <table class="table" id="tblProduksi">
+            <thead><tr><th>Tanggal</th><th>Produk</th><th>Jumlah (kg)</th><th>Target (kg)</th><th>Shift</th><th>Operator</th><th>Catatan</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- GUDANG -->
+      <div class="page" id="page-gudang">
+        <div style="display:flex;gap:8px;margin-bottom:14px;justify-content:flex-end">
+          <button class="btn btn-sm btn-primary" onclick="openFormBarang()">+ Tambah Barang</button>
+          <button class="btn btn-sm" onclick="exportCSV('gudang')">Export CSV</button>
+        </div>
+        <div class="stats-grid" id="gudangStats"></div>
+        <div class="two-col">
+          <div>
+            <div class="section-header"><div class="section-title">Stok Barang</div></div>
+            <div class="table-wrap">
+              <table class="table" id="tblStok">
+                <thead><tr><th>Nama Barang</th><th>Stok</th><th>Satuan</th><th>Min Stok</th><th>Status</th><th>Aksi</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <div class="section-header"><div class="section-title">Riwayat Transaksi</div></div>
+            <div class="table-wrap" style="max-height:340px;overflow-y:auto">
+              <table class="table" id="tblGudangTx">
+                <thead><tr><th>Tgl</th><th>Jenis</th><th>Barang</th><th>Jumlah</th><th>Ket</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CASHBON -->
+      <div class="page" id="page-cashbon">
+        <div style="display:flex;gap:8px;margin-bottom:14px;justify-content:flex-end">
+          <button class="btn btn-sm" onclick="exportCSV('cashbon')">Export CSV</button>
+        </div>
+        <div class="stats-grid" id="cashStats"></div>
+        <div class="table-wrap">
+          <table class="table" id="tblCashbon">
+            <thead><tr><th>Nama</th><th>Jumlah</th><th>Tgl Pengajuan</th><th>Rencana Lunas</th><th>Alasan</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- LAPORAN -->
+      <div class="page" id="page-laporan">
+        <div class="three-col" style="margin-bottom:20px">
+          <div class="card" style="text-align:center;cursor:pointer" onclick="exportCSV('absensi')">
+            <svg style="width:32px;height:32px;stroke:var(--green);fill:none;stroke-width:1.8;display:block;margin:0 auto 8px" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M9 16l2 2 4-4"/></svg>
+            <div style="font-weight:700;font-size:13px">Laporan Absensi</div>
+            <div style="font-size:12px;color:var(--text3);margin:4px 0 8px">Rekap kehadiran</div>
+            <span class="badge badge-green">Download CSV</span>
+          </div>
+          <div class="card" style="text-align:center;cursor:pointer" onclick="exportCSV('produksi')">
+            <svg style="width:32px;height:32px;stroke:var(--blue);fill:none;stroke-width:1.8;display:block;margin:0 auto 8px" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            <div style="font-weight:700;font-size:13px">Laporan Produksi</div>
+            <div style="font-size:12px;color:var(--text3);margin:4px 0 8px">Output harian</div>
+            <span class="badge badge-blue">Download CSV</span>
+          </div>
+          <div class="card" style="text-align:center;cursor:pointer" onclick="exportCSV('cashbon')">
+            <svg style="width:32px;height:32px;stroke:var(--amber);fill:none;stroke-width:1.8;display:block;margin:0 auto 8px" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <div style="font-weight:700;font-size:13px">Laporan Cashbon</div>
+            <div style="font-size:12px;color:var(--text3);margin:4px 0 8px">Status pelunasan</div>
+            <span class="badge badge-amber">Download CSV</span>
+          </div>
+          <div class="card" style="text-align:center;cursor:pointer" onclick="exportCSV('gudang')">
+            <svg style="width:32px;height:32px;stroke:var(--gray);fill:none;stroke-width:1.8;display:block;margin:0 auto 8px" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            <div style="font-weight:700;font-size:13px">Laporan Gudang</div>
+            <div style="font-size:12px;color:var(--text3);margin:4px 0 8px">Stok & transaksi</div>
+            <span class="badge badge-gray">Download CSV</span>
+          </div>
+          <div class="card" style="text-align:center;cursor:pointer" onclick="exportCSV('karyawan')">
+            <svg style="width:32px;height:32px;stroke:var(--text3);fill:none;stroke-width:1.8;display:block;margin:0 auto 8px" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <div style="font-weight:700;font-size:13px">Data Karyawan</div>
+            <div style="font-size:12px;color:var(--text3);margin:4px 0 8px">Daftar lengkap</div>
+            <span class="badge badge-gray">Download CSV</span>
+          </div>
+          <div class="card" style="text-align:center;cursor:pointer;border:2px dashed var(--border)" onclick="exportAllCSV()">
+            <svg style="width:32px;height:32px;stroke:var(--green);fill:none;stroke-width:1.8;display:block;margin:0 auto 8px" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <div style="font-weight:700;font-size:13px">Export Semua</div>
+            <div style="font-size:12px;color:var(--text3);margin:4px 0 8px">Semua data sekaligus</div>
+            <span class="badge badge-green">Download CSV</span>
+          </div>
+        </div>
+        <div class="section-header"><div class="section-title">Ringkasan Data</div></div>
+        <div class="card" id="ringkasan"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+let DB = {
+  karyawan:[
+    {id:1,nama:'Ahmad Santoso',divisi:'Produksi',jabatan:'Operator Senior',hp:'081234567890',tglMasuk:'2022-03-01',status:'Aktif',kode:'KAR001'},
+    {id:2,nama:'Rina Dewi',divisi:'Produksi',jabatan:'Operator',hp:'081234567891',tglMasuk:'2023-01-15',status:'Aktif',kode:'KAR002'},
+    {id:3,nama:'Budi Wahyu',divisi:'Gudang',jabatan:'Staff Gudang',hp:'081234567892',tglMasuk:'2021-07-10',status:'Aktif',kode:'KAR003'},
+    {id:4,nama:'Sari Ningrum',divisi:'Admin',jabatan:'Admin',hp:'081234567893',tglMasuk:'2023-06-01',status:'Aktif',kode:'KAR004'},
+    {id:5,nama:'Fauzi Hadi',divisi:'Produksi',jabatan:'Operator',hp:'081234567894',tglMasuk:'2022-11-20',status:'Aktif',kode:'KAR005'},
+    {id:6,nama:'Maya Sari',divisi:'Kasir',jabatan:'Kasir',hp:'081234567896',tglMasuk:'2023-09-01',status:'Aktif',kode:'KAR006'},
+  ],
+  absensi:[],produksi:[],
+  gudangBarang:[
+    {id:1,nama:'Sirup Pericarp Pala',stok:1200,satuan:'botol',minStok:200},
+    {id:2,nama:'Buah Pala Segar',stok:85,satuan:'kg',minStok:100},
+    {id:3,nama:'Botol Kaca 250ml',stok:0,satuan:'pcs',minStok:500},
+    {id:4,nama:'Label Produk',stok:320,satuan:'lembar',minStok:100},
+    {id:5,nama:'Gula Tebu',stok:45,satuan:'kg',minStok:50},
+  ],
+  gudangTx:[],cashbon:[],
+};
+
+const today = new Date().toISOString().split('T')[0];
+DB.absensi=[
+  {id:1,idKaryawan:1,tanggal:today,jamMasuk:'07:52',jamKeluar:'16:05',ket:'',status:'Hadir'},
+  {id:2,idKaryawan:2,tanggal:today,jamMasuk:'08:10',jamKeluar:'',ket:'',status:'Hadir'},
+  {id:3,idKaryawan:3,tanggal:today,jamMasuk:'',jamKeluar:'',ket:'Sakit',status:'Izin'},
+  {id:4,idKaryawan:4,tanggal:today,jamMasuk:'08:45',jamKeluar:'',ket:'Terlambat',status:'Terlambat'},
+  {id:5,idKaryawan:5,tanggal:today,jamMasuk:'07:58',jamKeluar:'16:00',ket:'',status:'Hadir'},
+];
+DB.produksi=[
+  {id:1,tanggal:today,produk:'Sirup Pericarp Pala',jumlah:240,target:300,shift:'Pagi',operator:'Ahmad Santoso',catatan:''},
+  {id:2,tanggal:today,produk:'Produk B',jumlah:180,target:200,shift:'Siang',operator:'Rina Dewi',catatan:''},
+];
+DB.cashbon=[
+  {id:1,idKaryawan:1,jumlah:500000,tglPengajuan:today,rencanaLunas:'Potong gaji 1x',alasan:'Keperluan mendesak',status:'Menunggu'},
+  {id:2,idKaryawan:2,jumlah:750000,tglPengajuan:today,rencanaLunas:'Potong gaji 2x',alasan:'Biaya sekolah anak',status:'Disetujui'},
+];
+
+let nextId={karyawan:7,absensi:6,produksi:3,gudangBarang:6,gudangTx:1,cashbon:3};
+let currentPage='dashboard';
+
+// ===== UTILS =====
+function getKar(id){return DB.karyawan.find(k=>k.id==id);}
+function namaKar(id){const k=getKar(id);return k?k.nama:'—';}
+function initials(n){return n.split(' ').slice(0,2).map(x=>x[0]).join('').toUpperCase();}
+function formatRp(n){return 'Rp '+Number(n).toLocaleString('id-ID');}
+function formatDate(s){if(!s)return '—';return new Date(s).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});}
+function todayISO(){return new Date().toISOString().split('T')[0];}
+function nowTime(){return new Date().toTimeString().slice(0,5);}
+function badge(s){
+  const m={Hadir:'green',Terlambat:'amber',Izin:'blue',Absen:'red',Aktif:'green','Non-Aktif':'gray',
+    Menunggu:'amber',Disetujui:'green',Lunas:'blue',Ditolak:'red',Aman:'green',Menipis:'amber',Habis:'red'};
+  return `<span class="badge badge-${m[s]||'gray'}">${s}</span>`;
+}
+function setDate(){
+  document.getElementById('pageDate').textContent=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('filterTglAbsen').value=todayISO();
+  document.getElementById('filterTglProd').value=todayISO();
+}
+function showNotif(msg,type='success'){
+  const c=document.getElementById('notifContainer');
+  const el=document.createElement('div');
+  el.className=`notif notif-${type}`;
+  el.innerHTML=`<div class="notif-icon">${type==='success'?'✓':'!'}</div><div>${msg}</div>`;
+  c.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transform='translateX(100%)';el.style.transition='.3s';setTimeout(()=>el.remove(),300);},3000);
+}
+
+// ===== NAV =====
+const titles={dashboard:'Dashboard',karyawan:'Data Karyawan',akses:'Kode Akses Karyawan',absensi:'Laporan Absensi',produksi:'Laporan Produksi',gudang:'Penggudangan',cashbon:'Laporan Cashbon',laporan:'Laporan & Export'};
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  document.getElementById('pageTitle').textContent=titles[id]||id;
+  currentPage=id;
+  const renders={dashboard:renderDashboard,karyawan:renderKaryawan,akses:renderAkses,absensi:renderAbsensi,produksi:renderProduksi,gudang:renderGudang,cashbon:renderCashbon,laporan:renderLaporan};
+  if(renders[id])renders[id]();
+}
+
+// ===== MODAL =====
+function openModal(title,body){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=body;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+
+// ===== KODE AKSES =====
+function generateKode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let k='';for(let i=0;i<6;i++)k+=chars[Math.floor(Math.random()*chars.length)];
+  return k;
+}
+function generateSemuaKode(){
+  DB.karyawan.forEach(k=>{if(!k.kode)k.kode=generateKode();});
+  renderAkses();renderKaryawan();showNotif('Semua kode akses telah digenerate');
+}
+function renderAkses(){
+  const el=document.getElementById('daftarKodeAkses');
+  el.innerHTML='';
+  initAppUrl();
+  DB.karyawan.filter(k=>k.status==='Aktif').forEach(k=>{
+    el.innerHTML+=`<div class="kode-card">
+      <div style="flex:1">
+        <div class="kode-nama"><span class="avatar">${initials(k.nama)}</span>${k.nama}</div>
+        <div class="kode-divisi" style="margin-left:38px">${k.divisi} · ${k.jabatan}${k.hp?' · '+k.hp:''}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div class="kode-val">${k.kode||'—'}</div>
+        <div style="display:flex;gap:5px;margin-top:8px;justify-content:flex-end;flex-wrap:wrap">
+          ${!k.kode?`<button class="btn btn-sm btn-purple" onclick="buatKode(${k.id})">Generate</button>`:''}
+          <button class="btn btn-sm" onclick="regenKode(${k.id})" title="Ganti kode">🔄</button>
+          <button class="btn btn-sm" onclick="salinKode('${k.kode}','${k.nama}')" title="Salin kode">📋</button>
+          <button class="btn btn-sm" style="background:#E7F7E4;border-color:#5DCAA5;color:#0F6E56" onclick="shareWA('${k.kode}','${k.nama}','${k.hp||''}')">
+            💬 WA
+          </button>
+          <button class="btn btn-sm" style="background:#E6F1FB;border-color:#B5D4F4;color:#185FA5" onclick="shareEmail('${k.kode}','${k.nama}')">
+            ✉️ Email
+          </button>
+        </div>
+      </div>
+    </div>`;
+  });
+  if(!DB.karyawan.filter(k=>k.status==='Aktif').length){
+    el.innerHTML='<div style="text-align:center;padding:32px;color:var(--text3)">Belum ada karyawan aktif. Tambah karyawan terlebih dahulu.</div>';
+  }
+}
+function buatKode(id){const k=getKar(id);k.kode=generateKode();renderAkses();renderKaryawan();showNotif(`Kode untuk ${k.nama} dibuat: ${k.kode}`);}
+function regenKode(id){if(!confirm('Ganti kode akses? Kode lama tidak bisa dipakai lagi.'))return;buatKode(id);}
+let APP_URL = localStorage.getItem('sikarya_app_url') || '';
+
+function simpanAppUrl(){
+  const val = document.getElementById('appUrlInput').value.trim();
+  APP_URL = val;
+  localStorage.setItem('sikarya_app_url', val);
+  const st = document.getElementById('appUrlStatus');
+  if(val){
+    st.innerHTML = '✅ URL tersimpan: <strong>' + val + '</strong>';
+    st.style.color = 'var(--green-dark)';
+    showNotif('URL aplikasi karyawan disimpan!');
+  } else {
+    st.textContent = '💡 URL dikosongkan.';
+    st.style.color = 'var(--text3)';
+  }
+}
+
+function initAppUrl(){
+  const saved = localStorage.getItem('sikarya_app_url') || '';
+  APP_URL = saved;
+  if(document.getElementById('appUrlInput')) document.getElementById('appUrlInput').value = saved;
+  const st = document.getElementById('appUrlStatus');
+  if(st && saved) {
+    st.innerHTML = '✅ URL tersimpan: <strong>' + saved + '</strong>';
+    st.style.color = 'var(--green-dark)';
+  }
+}
+
+function getAppUrl(){
+  return APP_URL || 'https://sikarya-karyawan.netlify.app';
+}
+
+function salinKode(kode,nama){navigator.clipboard?.writeText(kode).then(()=>showNotif(`Kode ${nama} (${kode}) disalin`)).catch(()=>showNotif(`Kode: ${kode}`));}
+
+function shareWA(kode, nama, hp){
+  const url = getAppUrl();
+  const msg = encodeURIComponent(
+    `Halo ${nama} 👋\n\n` +
+    `Kamu mendapat akses ke aplikasi SiKarya untuk mengisi absensi, produksi, dan cashbon harian.\n\n` +
+    `📱 *Link Aplikasi:*\n${url}\n\n` +
+    `🔐 *Kode Akses Kamu:* *${kode}*\n\n` +
+    `Caranya:\n1. Buka link di atas\n2. Masukkan kode akses\n3. Isi data harian kamu\n4. Klik "Kirim Data" untuk laporan ke admin\n\nJangan bagikan kode ini ke orang lain ya! 🙏`
+  );
+  const phone = hp ? hp.replace(/^0/,'62').replace(/[^0-9]/g,'') : '';
+  const waUrl = phone ? `https://wa.me/${phone}?text=${msg}` : `https://wa.me/?text=${msg}`;
+  window.open(waUrl, '_blank');
+}
+
+function shareEmail(kode, nama){
+  const url = getAppUrl();
+  const subject = encodeURIComponent(`Kode Akses SiKarya - ${nama}`);
+  const body = encodeURIComponent(
+    `Halo ${nama},\n\n` +
+    `Kamu mendapat akses ke aplikasi SiKarya untuk mengisi absensi, produksi, dan cashbon harian.\n\n` +
+    `Link Aplikasi:\n${url}\n\n` +
+    `Kode Akses Kamu: ${kode}\n\n` +
+    `Cara penggunaan:\n1. Buka link aplikasi di atas\n2. Masukkan kode akses 6 digit\n3. Isi data harian (absensi, produksi, cashbon)\n4. Klik tombol "Kirim Data" untuk mengirim laporan ke admin\n\nJangan bagikan kode ini ke orang lain.\n\nSalam,\nAdmin SiKarya`
+  );
+  window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`, '_blank');
+}
+
+function shareSemuaWA(){
+  const kars = DB.karyawan.filter(k=>k.status==='Aktif'&&k.kode);
+  if(!kars.length){showNotif('Belum ada kode yang digenerate','warning');return;}
+  const url = getAppUrl();
+  const lines = kars.map(k=>`• ${k.nama} (${k.divisi}): *${k.kode}*`).join('\n');
+  const msg = encodeURIComponent(
+    `📋 *Daftar Kode Akses SiKarya*\n\n` +
+    `📱 Link Aplikasi:\n${url}\n\n` +
+    `🔐 Kode Akses Karyawan:\n${lines}\n\n` +
+    `Buka link, masukkan kode masing-masing, isi data harian, lalu kirim laporan ke admin. 🙏`
+  );
+  window.open(`https://wa.me/?text=${msg}`, '_blank');
+}
+function cetakSemuaKode(){
+  let html='<div style="font-family:Arial;padding:20px"><h2>Daftar Kode Akses SiKarya</h2><p style="color:#666;margin:8px 0 20px">Beri tahu masing-masing karyawan kode akses mereka. Jangan dibagikan ke orang lain.</p>';
+  DB.karyawan.filter(k=>k.status==='Aktif').forEach(k=>{
+    html+=`<div style="border:1px solid #ddd;border-radius:8px;padding:12px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center">
+      <div><strong>${k.nama}</strong><br><span style="color:#888;font-size:13px">${k.divisi} · ${k.jabatan}</span></div>
+      <div style="font-family:monospace;font-size:24px;font-weight:900;letter-spacing:6px;color:#0F6E56">${k.kode||'—'}</div>
+    </div>`;
+  });
+  html+='</div>';
+  const w=window.open('','_blank');w.document.write(html);w.document.close();w.print();
+}
+
+// ===== DASHBOARD =====
+function renderDashboard(){
+  const todayAbs=DB.absensi.filter(a=>a.tanggal===todayISO());
+  const hadir=todayAbs.filter(a=>['Hadir','Terlambat'].includes(a.status)).length;
+  const absen=todayAbs.filter(a=>a.status==='Absen').length;
+  const totalProd=DB.produksi.filter(p=>p.tanggal===todayISO()).reduce((s,p)=>s+Number(p.jumlah),0);
+  const cashPending=DB.cashbon.filter(c=>c.status==='Menunggu');
+  document.getElementById('dashStats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Karyawan Aktif</div><div class="stat-val">${DB.karyawan.filter(k=>k.status==='Aktif').length}</div><div class="stat-sub">dari ${DB.karyawan.length} total</div></div>
+    <div class="stat-card"><div class="stat-label">Hadir Hari Ini</div><div class="stat-val text-green">${hadir}</div><div class="stat-sub">${absen} tidak hadir</div></div>
+    <div class="stat-card"><div class="stat-label">Produksi Hari Ini</div><div class="stat-val">${totalProd.toLocaleString('id-ID')} kg</div></div>
+    <div class="stat-card"><div class="stat-label">Cashbon Pending</div><div class="stat-val text-amber">${cashPending.length}</div><div class="stat-sub">${formatRp(cashPending.reduce((s,c)=>s+c.jumlah,0))}</div></div>
+  `;
+  const at=document.querySelector('#dashAbsenTbl tbody');at.innerHTML='';
+  todayAbs.slice(0,5).forEach(a=>{const k=getKar(a.idKaryawan);if(!k)return;at.innerHTML+=`<tr><td><span class="avatar">${initials(k.nama)}</span>${k.nama}</td><td>${a.jamMasuk||'—'}</td><td>${badge(a.status)}</td></tr>`;});
+  if(!todayAbs.length)at.innerHTML='<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text3)">Belum ada data</td></tr>';
+  const ct=document.querySelector('#dashCashTbl tbody');ct.innerHTML='';
+  cashPending.forEach(c=>{ct.innerHTML+=`<tr><td>${namaKar(c.idKaryawan)}</td><td>${formatRp(c.jumlah)}</td><td><button class="btn btn-sm btn-approve" onclick="approveCash(${c.id})">Setujui</button> <button class="btn btn-sm btn-danger" onclick="tolakCash(${c.id})">Tolak</button></td></tr>`;});
+  if(!cashPending.length)ct.innerHTML='<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text3)">Tidak ada pending</td></tr>';
+  const produk=['Sirup Pericarp Pala','Produk B','Produk C'];
+  let ph='';
+  produk.forEach(p=>{
+    const j=DB.produksi.filter(x=>x.produk===p&&x.tanggal===todayISO()).reduce((s,x)=>s+Number(x.jumlah),0);
+    const t=DB.produksi.filter(x=>x.produk===p&&x.tanggal===todayISO()).reduce((s,x)=>s+Number(x.target),0)||300;
+    const pct=Math.min(100,Math.round(j/t*100));
+    const col=pct>=90?'var(--green)':pct>=60?'var(--amber-mid)':'#F09595';
+    ph+=`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>${p}</span><span class="fw-bold">${j} / ${t} kg (${pct}%)</span></div><div class="progress"><div class="progress-fill" style="width:${pct}%;background:${col}"></div></div></div>`;
+  });
+  document.getElementById('dashProdCard').innerHTML=ph||'<span style="color:var(--text3);font-size:13px">Belum ada data produksi</span>';
+  const menipis=DB.gudangBarang.filter(b=>b.stok<=b.minStok);
+  let sh='';
+  menipis.forEach(b=>{sh+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:${b.stok===0?'var(--red-light)':'var(--amber-light)'};border-radius:var(--radius);margin-bottom:6px;font-size:13px"><span>${b.nama}</span><span>${b.stok} ${b.satuan} ${badge(b.stok===0?'Habis':'Menipis')}</span></div>`;});
+  document.getElementById('dashStokAlert').innerHTML=sh||'<div style="color:var(--text3);font-size:13px">Semua stok aman ✓</div>';
+}
+
+// ===== KARYAWAN =====
+function renderKaryawan(){
+  const q=(document.getElementById('searchKar')?.value||'').toLowerCase();
+  const div=document.getElementById('filterDivKar')?.value||'';
+  const data=DB.karyawan.filter(k=>(k.nama.toLowerCase().includes(q)||k.jabatan.toLowerCase().includes(q))&&(!div||k.divisi===div));
+  const tbody=document.querySelector('#tblKaryawan tbody');tbody.innerHTML='';
+  data.forEach((k,i)=>{
+    tbody.innerHTML+=`<tr><td>${i+1}</td><td><span class="avatar">${initials(k.nama)}</span>${k.nama}</td><td>${k.divisi}</td><td>${k.jabatan}</td><td>${k.hp}</td>
+      <td><code style="background:var(--green-light);color:var(--green-dark);padding:2px 8px;border-radius:6px;font-size:13px;font-weight:700;letter-spacing:2px">${k.kode||'—'}</code></td>
+      <td>${badge(k.status)}</td>
+      <td><button class="btn btn-sm" onclick="openFormKaryawan(${k.id})">Edit</button> <button class="btn btn-sm btn-danger" onclick="hapusKar(${k.id})">Hapus</button></td></tr>`;
+  });
+  if(!data.length)tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">Tidak ada data</td></tr>';
+}
+function openFormKaryawan(id=null){
+  const k=id?getKar(id):{};
+  openModal(id?'Edit Karyawan':'Tambah Karyawan',`
+    <div class="form-row">
+      <div class="form-group"><label>Nama Lengkap *</label><input id="fNama" value="${k.nama||''}" placeholder="Nama lengkap"></div>
+      <div class="form-group"><label>No HP</label><input id="fHp" value="${k.hp||''}" placeholder="08xxx"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Divisi *</label><select id="fDiv"><option ${k.divisi==='Produksi'?'selected':''}>Produksi</option><option ${k.divisi==='Gudang'?'selected':''}>Gudang</option><option ${k.divisi==='Admin'?'selected':''}>Admin</option><option ${k.divisi==='Kasir'?'selected':''}>Kasir</option><option ${k.divisi==='QC'?'selected':''}>QC</option></select></div>
+      <div class="form-group"><label>Jabatan</label><input id="fJab" value="${k.jabatan||''}" placeholder="Jabatan"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Tgl Masuk</label><input type="date" id="fTgl" value="${k.tglMasuk||todayISO()}"></div>
+      <div class="form-group"><label>Status</label><select id="fStat"><option ${k.status==='Aktif'?'selected':''}>Aktif</option><option ${k.status==='Non-Aktif'?'selected':''}>Non-Aktif</option></select></div>
+    </div>
+    <div class="form-group"><label>Kode Akses</label>
+      <div style="display:flex;gap:8px">
+        <input id="fKode" value="${k.kode||''}" placeholder="Kode otomatis" style="flex:1;font-family:monospace;font-weight:700;letter-spacing:3px">
+        <button class="btn btn-sm btn-purple" type="button" onclick="document.getElementById('fKode').value=generateKode()">Generate</button>
+      </div>
+    </div>
+    <div class="form-actions"><button class="btn btn-primary" onclick="saveKar(${id||'null'})">Simpan</button><button class="btn" onclick="closeModal()">Batal</button></div>
+  `);
+}
+function saveKar(id){
+  const nama=document.getElementById('fNama').value.trim();
+  if(!nama){showNotif('Nama wajib diisi','warning');return;}
+  const data={nama,hp:document.getElementById('fHp').value,divisi:document.getElementById('fDiv').value,jabatan:document.getElementById('fJab').value,tglMasuk:document.getElementById('fTgl').value,status:document.getElementById('fStat').value,kode:document.getElementById('fKode').value||generateKode()};
+  if(id){Object.assign(getKar(id),data);}else{DB.karyawan.push({id:nextId.karyawan++,...data});}
+  closeModal();renderKaryawan();renderDashboard();showNotif(id?'Data karyawan diperbarui':'Karyawan berhasil ditambahkan');
+}
+function hapusKar(id){if(!confirm('Hapus karyawan ini?'))return;DB.karyawan=DB.karyawan.filter(k=>k.id!==id);renderKaryawan();showNotif('Karyawan dihapus','warning');}
+
+// ===== ABSENSI =====
+function renderAbsensi(){
+  const tgl=document.getElementById('filterTglAbsen')?.value||todayISO();
+  const div=document.getElementById('filterDivAbsen')?.value||'';
+  const data=DB.absensi.filter(a=>{const k=getKar(a.idKaryawan);return(!tgl||a.tanggal===tgl)&&(!div||k?.divisi===div);});
+  const h=data.filter(a=>a.status==='Hadir').length,t=data.filter(a=>a.status==='Terlambat').length,i=data.filter(a=>a.status==='Izin').length,ab=data.filter(a=>a.status==='Absen').length;
+  document.getElementById('absenStats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Hadir</div><div class="stat-val text-green">${h}</div></div>
+    <div class="stat-card"><div class="stat-label">Terlambat</div><div class="stat-val text-amber">${t}</div></div>
+    <div class="stat-card"><div class="stat-label">Izin/Sakit</div><div class="stat-val text-blue">${i}</div></div>
+    <div class="stat-card"><div class="stat-label">Absen</div><div class="stat-val text-red">${ab}</div></div>`;
+  const tbody=document.querySelector('#tblAbsensi tbody');tbody.innerHTML='';
+  data.forEach(a=>{const k=getKar(a.idKaryawan);if(!k)return;
+    tbody.innerHTML+=`<tr><td><span class="avatar">${initials(k.nama)}</span>${k.nama}</td><td>${k.divisi}</td><td>${formatDate(a.tanggal)}</td><td>${a.jamMasuk||'—'}</td><td>${a.jamKeluar||'—'}</td><td>${a.ket||'—'}</td><td>${badge(a.status)}</td>
+      <td><button class="btn btn-sm" onclick="editAbsen(${a.id})">Edit</button> <button class="btn btn-sm btn-danger" onclick="hapusAbsen(${a.id})">Hapus</button></td></tr>`;
+  });
+  if(!data.length)tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">Tidak ada data</td></tr>';
+}
+function editAbsen(id){
+  const a=DB.absensi.find(x=>x.id===id);
+  const karOpts=DB.karyawan.map(k=>`<option value="${k.id}" ${a.idKaryawan==k.id?'selected':''}>${k.nama}</option>`).join('');
+  openModal('Edit Absensi',`
+    <div class="form-group"><label>Karyawan</label><select id="aKar">${karOpts}</select></div>
+    <div class="form-row"><div class="form-group"><label>Tanggal</label><input type="date" id="aTgl" value="${a.tanggal}"></div>
+    <div class="form-group"><label>Status</label><select id="aStat"><option ${a.status==='Hadir'?'selected':''}>Hadir</option><option ${a.status==='Terlambat'?'selected':''}>Terlambat</option><option ${a.status==='Izin'?'selected':''}>Izin</option><option ${a.status==='Absen'?'selected':''}>Absen</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label>Jam Masuk</label><input type="time" id="aJM" value="${a.jamMasuk}"></div><div class="form-group"><label>Jam Keluar</label><input type="time" id="aJK" value="${a.jamKeluar}"></div></div>
+    <div class="form-group"><label>Keterangan</label><input id="aKet" value="${a.ket}"></div>
+    <div class="form-actions"><button class="btn btn-primary" onclick="saveAbsen(${id})">Simpan</button><button class="btn" onclick="closeModal()">Batal</button></div>
+  `);
+}
+function saveAbsen(id){const a=DB.absensi.find(x=>x.id===id);Object.assign(a,{idKaryawan:Number(document.getElementById('aKar').value),tanggal:document.getElementById('aTgl').value,status:document.getElementById('aStat').value,jamMasuk:document.getElementById('aJM').value,jamKeluar:document.getElementById('aJK').value,ket:document.getElementById('aKet').value});closeModal();renderAbsensi();showNotif('Absensi diperbarui');}
+function hapusAbsen(id){if(!confirm('Hapus data ini?'))return;DB.absensi=DB.absensi.filter(a=>a.id!==id);renderAbsensi();showNotif('Absensi dihapus','warning');}
+
+// ===== PRODUKSI =====
+function renderProduksi(){
+  const tgl=document.getElementById('filterTglProd')?.value||'';
+  const prod=document.getElementById('filterProd')?.value||'';
+  const data=DB.produksi.filter(p=>(!tgl||p.tanggal===tgl)&&(!prod||p.produk===prod));
+  const tj=data.reduce((s,p)=>s+Number(p.jumlah),0),tt=data.reduce((s,p)=>s+Number(p.target),0);
+  const pct=tt?Math.round(tj/tt*100):0;
+  document.getElementById('prodStats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Total Produksi</div><div class="stat-val">${tj.toLocaleString('id-ID')} kg</div></div>
+    <div class="stat-card"><div class="stat-label">Target</div><div class="stat-val">${tt.toLocaleString('id-ID')} kg</div></div>
+    <div class="stat-card"><div class="stat-label">Pencapaian</div><div class="stat-val ${pct>=90?'text-green':pct>=60?'text-amber':'text-red'}">${pct}%</div></div>
+    <div class="stat-card"><div class="stat-label">Jumlah Batch</div><div class="stat-val">${data.length}</div></div>`;
+  const tbody=document.querySelector('#tblProduksi tbody');tbody.innerHTML='';
+  data.forEach(p=>{tbody.innerHTML+=`<tr><td>${formatDate(p.tanggal)}</td><td>${p.produk}</td><td class="fw-bold">${Number(p.jumlah).toLocaleString('id-ID')}</td><td>${Number(p.target).toLocaleString('id-ID')}</td><td><span class="chip">${p.shift}</span></td><td>${p.operator}</td><td>${p.catatan||'—'}</td>
+    <td><button class="btn btn-sm btn-danger" onclick="hapusProd(${p.id})">Hapus</button></td></tr>`;});
+  if(!data.length)tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text3)">Tidak ada data</td></tr>';
+}
+function hapusProd(id){if(!confirm('Hapus data produksi ini?'))return;DB.produksi=DB.produksi.filter(p=>p.id!==id);renderProduksi();showNotif('Data produksi dihapus','warning');}
+
+// ===== GUDANG =====
+function renderGudang(){
+  const total=DB.gudangBarang.length,aman=DB.gudangBarang.filter(b=>b.stok>b.minStok).length,menipis=DB.gudangBarang.filter(b=>b.stok>0&&b.stok<=b.minStok).length,habis=DB.gudangBarang.filter(b=>b.stok===0).length;
+  document.getElementById('gudangStats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Total SKU</div><div class="stat-val">${total}</div></div>
+    <div class="stat-card"><div class="stat-label">Stok Aman</div><div class="stat-val text-green">${aman}</div></div>
+    <div class="stat-card"><div class="stat-label">Menipis</div><div class="stat-val text-amber">${menipis}</div></div>
+    <div class="stat-card"><div class="stat-label">Habis</div><div class="stat-val text-red">${habis}</div></div>`;
+  const tbody=document.querySelector('#tblStok tbody');tbody.innerHTML='';
+  DB.gudangBarang.forEach(b=>{const st=b.stok===0?'Habis':b.stok<=b.minStok?'Menipis':'Aman';tbody.innerHTML+=`<tr><td>${b.nama}</td><td class="fw-bold">${b.stok.toLocaleString('id-ID')}</td><td>${b.satuan}</td><td>${b.minStok}</td><td>${badge(st)}</td><td><button class="btn btn-sm btn-approve" onclick="updateStok(${b.id})">Update</button></td></tr>`;});
+  const t2=document.querySelector('#tblGudangTx tbody');t2.innerHTML='';
+  [...DB.gudangTx].reverse().forEach(t=>{t2.innerHTML+=`<tr><td>${formatDate(t.tanggal)}</td><td><span class="badge ${t.jenis==='Masuk'?'badge-green':'badge-amber'}">${t.jenis}</span></td><td>${t.barang}</td><td>${t.jumlah} ${t.satuan}</td><td>${t.ket||'—'}</td></tr>`;});
+}
+function openFormBarang(){
+  openModal('Tambah Barang',`
+    <div class="form-group"><label>Nama Barang *</label><input id="bNama" placeholder="Nama barang"></div>
+    <div class="form-row"><div class="form-group"><label>Stok Awal</label><input type="number" id="bStok" value="0"></div><div class="form-group"><label>Satuan</label><select id="bSat"><option>kg</option><option>botol</option><option>pcs</option><option>lembar</option><option>galon</option><option>karton</option></select></div></div>
+    <div class="form-group"><label>Minimal Stok (Alert)</label><input type="number" id="bMin" value="10"></div>
+    <div class="form-actions"><button class="btn btn-primary" onclick="saveBarang()">Simpan</button><button class="btn" onclick="closeModal()">Batal</button></div>
+  `);
+}
+function saveBarang(){const nama=document.getElementById('bNama').value.trim();if(!nama){showNotif('Nama wajib diisi','warning');return;}DB.gudangBarang.push({id:nextId.gudangBarang++,nama,stok:Number(document.getElementById('bStok').value),satuan:document.getElementById('bSat').value,minStok:Number(document.getElementById('bMin').value)});closeModal();renderGudang();showNotif('Barang ditambahkan');}
+function updateStok(id){
+  const b=DB.gudangBarang.find(x=>x.id===id);
+  openModal(`Update Stok: ${b.nama}`,`
+    <div style="padding:10px 14px;background:var(--bg);border-radius:var(--radius);margin-bottom:12px;font-size:13px">Stok saat ini: <strong>${b.stok} ${b.satuan}</strong></div>
+    <div class="form-row"><div class="form-group"><label>Jenis</label><select id="sJ"><option>Masuk</option><option>Keluar</option></select></div><div class="form-group"><label>Jumlah *</label><input type="number" id="sJml" placeholder="0" min="1"></div></div>
+    <div class="form-row"><div class="form-group"><label>Tanggal</label><input type="date" id="sTgl" value="${todayISO()}"></div><div class="form-group"><label>Keterangan</label><input id="sKet" placeholder="Ket..."></div></div>
+    <div class="form-actions"><button class="btn btn-primary" onclick="saveUpdateStok(${id})">Simpan</button><button class="btn" onclick="closeModal()">Batal</button></div>
+  `);
+}
+function saveUpdateStok(id){const j=document.getElementById('sJ').value,jml=Number(document.getElementById('sJml').value);if(!jml){showNotif('Jumlah wajib','warning');return;}const b=DB.gudangBarang.find(x=>x.id===id);if(j==='Keluar'&&jml>b.stok){showNotif('Stok tidak cukup','warning');return;}b.stok=j==='Masuk'?b.stok+jml:b.stok-jml;DB.gudangTx.push({id:nextId.gudangTx++,tanggal:document.getElementById('sTgl').value,jenis:j,barang:b.nama,jumlah:jml,satuan:b.satuan,ket:document.getElementById('sKet').value});closeModal();renderGudang();renderDashboard();showNotif('Stok diperbarui');}
+
+// ===== CASHBON =====
+function renderCashbon(){
+  const total=DB.cashbon.reduce((s,c)=>s+Number(c.jumlah),0),pending=DB.cashbon.filter(c=>c.status==='Menunggu'),dis=DB.cashbon.filter(c=>c.status==='Disetujui'),lunas=DB.cashbon.filter(c=>c.status==='Lunas');
+  document.getElementById('cashStats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Total Cashbon</div><div class="stat-val">${formatRp(total)}</div></div>
+    <div class="stat-card"><div class="stat-label">Menunggu</div><div class="stat-val text-amber">${pending.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Disetujui</div><div class="stat-val text-green">${dis.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Lunas</div><div class="stat-val text-blue">${lunas.length}</div></div>`;
+  const tbody=document.querySelector('#tblCashbon tbody');tbody.innerHTML='';
+  DB.cashbon.forEach(c=>{tbody.innerHTML+=`<tr><td><span class="avatar">${initials(namaKar(c.idKaryawan))}</span>${namaKar(c.idKaryawan)}</td><td class="fw-bold">${formatRp(c.jumlah)}</td><td>${formatDate(c.tglPengajuan)}</td><td>${c.rencanaLunas}</td><td>${c.alasan}</td><td>${badge(c.status)}</td>
+    <td>${c.status==='Menunggu'?`<button class="btn btn-sm btn-approve" onclick="approveCash(${c.id})">Setujui</button> <button class="btn btn-sm btn-danger" onclick="tolakCash(${c.id})">Tolak</button>`:''}
+    ${c.status==='Disetujui'?`<button class="btn btn-sm btn-approve" onclick="lunasCash(${c.id})">Tandai Lunas</button>`:''}
+    ${c.status==='Lunas'?badge('Lunas'):''}
+    </td></tr>`;});
+  if(!DB.cashbon.length)tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3)">Tidak ada data</td></tr>';
+}
+function approveCash(id){const c=DB.cashbon.find(x=>x.id===id);c.status='Disetujui';renderCashbon();renderDashboard();showNotif(`Cashbon ${namaKar(c.idKaryawan)} disetujui`);}
+function tolakCash(id){const c=DB.cashbon.find(x=>x.id===id);c.status='Ditolak';renderCashbon();renderDashboard();showNotif(`Cashbon ditolak`,'warning');}
+function lunasCash(id){const c=DB.cashbon.find(x=>x.id===id);c.status='Lunas';renderCashbon();showNotif(`Cashbon ditandai lunas`);}
+
+// ===== LAPORAN =====
+function renderLaporan(){
+  const h=DB.absensi.filter(a=>a.status==='Hadir').length,tp=DB.produksi.reduce((s,p)=>s+Number(p.jumlah),0),tc=DB.cashbon.filter(c=>c.status!=='Lunas').reduce((s,c)=>s+c.jumlah,0);
+  document.getElementById('ringkasan').innerHTML=`<div class="two-col">
+    <div><div style="font-size:13px;font-weight:700;margin-bottom:10px">Absensi</div>
+      <div class="summary-row"><span>Total record</span><span>${DB.absensi.length}</span></div>
+      <div class="summary-row"><span>Total hadir</span><span class="text-green">${h}</span></div>
+      <div class="summary-row"><span>Total absen</span><span class="text-red">${DB.absensi.filter(a=>a.status==='Absen').length}</span></div>
+    </div>
+    <div><div style="font-size:13px;font-weight:700;margin-bottom:10px">Operasional</div>
+      <div class="summary-row"><span>Total produksi</span><span>${tp.toLocaleString('id-ID')} kg</span></div>
+      <div class="summary-row"><span>Cashbon aktif</span><span class="text-amber">${formatRp(tc)}</span></div>
+      <div class="summary-row"><span>Karyawan aktif</span><span>${DB.karyawan.filter(k=>k.status==='Aktif').length} orang</span></div>
+    </div>
+  </div>`;
+}
+
+// ===== SYNC =====
+function exportData(){
+  const json=JSON.stringify({exportTime:new Date().toISOString(),version:'1.0',DB},null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`SiKarya_backup_${todayISO()}.json`;a.click();
+  showNotif('Backup data berhasil didownload');
+}
+function importData(){
+  const input=document.createElement('input');input.type='file';input.accept='.json';
+  input.onchange=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const parsed=JSON.parse(ev.target.result);
+        if(!parsed.DB){showNotif('Format file tidak valid','warning');return;}
+        // Merge data — tambahkan data baru dari karyawan, jangan overwrite yg sudah ada
+        const src=parsed.DB;
+        // Merge absensi
+        src.absensi?.forEach(a=>{if(!DB.absensi.find(x=>x.id===a.id&&x.idKaryawan===a.idKaryawan&&x.tanggal===a.tanggal)){DB.absensi.push({...a,id:nextId.absensi++});}});
+        // Merge produksi
+        src.produksi?.forEach(p=>{if(!DB.produksi.find(x=>x.tanggal===p.tanggal&&x.produk===p.produk&&x.shift===p.shift&&x.operator===p.operator)){DB.produksi.push({...p,id:nextId.produksi++});}});
+        // Merge cashbon
+        src.cashbon?.forEach(c=>{if(!DB.cashbon.find(x=>x.idKaryawan===c.idKaryawan&&x.tglPengajuan===c.tglPengajuan&&x.jumlah===c.jumlah)){DB.cashbon.push({...c,id:nextId.cashbon++});}});
+        // Merge gudang tx
+        src.gudangTx?.forEach(t=>{if(!DB.gudangTx.find(x=>x.tanggal===t.tanggal&&x.barang===t.barang&&x.jumlah===t.jumlah)){DB.gudangTx.push({...t,id:nextId.gudangTx++});}});
+        renderDashboard();
+        showNotif(`Data berhasil diimport dari ${file.name}`);
+      }catch(err){showNotif('Gagal membaca file: '+err.message,'warning');}
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ===== EXPORT CSV =====
+function toCSV(rows){return rows.map(r=>r.map(c=>`"${String(c??'').replace(/"/g,'""')}"`).join(',')).join('\n');}
+function dlCSV(content,filename){const blob=new Blob(['\uFEFF'+content],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();showNotif('CSV berhasil didownload');}
+function exportCSV(type){
+  if(type==='absensi'){const r=[['Nama','Divisi','Tanggal','Jam Masuk','Jam Keluar','Keterangan','Status']];DB.absensi.forEach(a=>{const k=getKar(a.idKaryawan);r.push([k?.nama,k?.divisi,a.tanggal,a.jamMasuk,a.jamKeluar,a.ket,a.status]);});dlCSV(toCSV(r),`absensi_${todayISO()}.csv`);}
+  else if(type==='produksi'){const r=[['Tanggal','Produk','Jumlah (kg)','Target (kg)','Shift','Operator','Catatan']];DB.produksi.forEach(p=>r.push([p.tanggal,p.produk,p.jumlah,p.target,p.shift,p.operator,p.catatan]));dlCSV(toCSV(r),`produksi_${todayISO()}.csv`);}
+  else if(type==='cashbon'){const r=[['Nama','Jumlah (Rp)','Tgl Pengajuan','Rencana Lunas','Alasan','Status']];DB.cashbon.forEach(c=>r.push([namaKar(c.idKaryawan),c.jumlah,c.tglPengajuan,c.rencanaLunas,c.alasan,c.status]));dlCSV(toCSV(r),`cashbon_${todayISO()}.csv`);}
+  else if(type==='gudang'){const r=[['Nama Barang','Stok','Satuan','Min Stok','Status']];DB.gudangBarang.forEach(b=>{const st=b.stok===0?'Habis':b.stok<=b.minStok?'Menipis':'Aman';r.push([b.nama,b.stok,b.satuan,b.minStok,st]);});dlCSV(toCSV(r),`gudang_${todayISO()}.csv`);}
+  else if(type==='karyawan'){const r=[['Nama','Divisi','Jabatan','No HP','Kode Akses','Tgl Masuk','Status']];DB.karyawan.forEach(k=>r.push([k.nama,k.divisi,k.jabatan,k.hp,k.kode,k.tglMasuk,k.status]));dlCSV(toCSV(r),`karyawan_${todayISO()}.csv`);}
+}
+function exportAllCSV(){['karyawan','absensi','produksi','cashbon','gudang'].forEach(t=>exportCSV(t));}
+
+setDate();renderDashboard();initAppUrl();
+</script>
+</body>
+</html>
